@@ -188,25 +188,39 @@ const OrdersDashboard = () => {
       console.error(e);
     }
   };
-  
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Orders Dashboard</h1>
-      
-      <Summary orders={orders} totalRevenue={totalRevenue} customerEmails={customerEmails} />
-      
-      <Filters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} />
-      
-      {loading ? (
+
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-6">Orders Dashboard</h1>
+        <Summary orders={orders} totalRevenue={totalRevenue} customerEmails={customerEmails} />
+        <Filters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} />
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading orders...</p>
         </div>
-      ) : error ? (
-        <div className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</div>
-      ) : (
-        <Table sortedOrders={sortedOrders} sendReminderEmail={sendReminderEmail} markAsShipped={markAsShipped} />
-      )}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-6">Orders Dashboard</h1>
+        <Summary orders={orders} totalRevenue={totalRevenue} customerEmails={customerEmails} />
+        <Filters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} />
+        <div className="bg-red-100 text-red-700 p-4 rounded-lg">{error}</div>;
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Orders Dashboard</h1>
+      <Summary orders={orders} totalRevenue={totalRevenue} customerEmails={customerEmails} />
+      <Filters filter={filter} setFilter={setFilter} sortBy={sortBy} setSortBy={setSortBy} />
+      <Table sortedOrders={sortedOrders} sendReminderEmail={sendReminderEmail} markAsShipped={markAsShipped} />
     </div>
   );
 };
