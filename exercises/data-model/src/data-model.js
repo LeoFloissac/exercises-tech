@@ -13,6 +13,14 @@
 // models/task.js
 const mongoose = require('mongoose');
 
+const commentSchema = new mongoose.Schema({
+  text: String,
+  createdAt: { type: Date, default: Date.now },
+  user_id: String,
+  user_name: String,
+  user_avatar: String
+});
+
 const taskSchema = new mongoose.Schema({
   title: String,
   description: String,
@@ -33,10 +41,7 @@ const taskSchema = new mongoose.Schema({
     email: String,
     avatar: String
   },
-  comments: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment'
-  }],
+  comments: [commentSchema],
   priority: {
     type: String,
     enum: ['low', 'medium', 'high'],
@@ -49,17 +54,6 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model('Task', taskSchema);
 module.exports = Task;
-
-const commentSchema = new mongoose.Schema({
-  text: String,
-  createdAt: { type: Date, default: Date.now },
-  user_id: String,
-  user_name: String,
-  user_avatar: String
-});
-
-const Comment = mongoose.model('Comment', commentSchema);
-module.exports = Comment;
 
 // controllers/taskController.js
 const express = require('express');
