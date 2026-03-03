@@ -124,7 +124,7 @@ const OrdersDashboard = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const data = await api.get('/orders');
+        const {ok, data} = await api.get('/orders');
         
         setOrders(data);
         
@@ -167,7 +167,7 @@ const OrdersDashboard = () => {
   // Send reminder email
   const sendReminderEmail = async (orderId) => {
     try {
-      const {data, ok} = await api.post('/orders/${orderId}/send-reminder', { orderId });
+      const {ok, data} = await api.post('/orders/${orderId}/send-reminder', { orderId });
       if (!ok) return toast.error("Failed to send reminder email");
       alert('Reminder email sent successfully');
     } catch (e) {
@@ -178,7 +178,7 @@ const OrdersDashboard = () => {
   // Mark order as shipped
   const markAsShipped = async (orderId) => {
     try {
-      const {data, ok} = await ordersApi.markAsShipped(orderId);
+      const {ok, data} = await ordersApi.markAsShipped(orderId);
       if (!ok) return toast.error("Failed to mark order as shipped");
       setOrders(orders.map(order => 
         order.id === orderId ? { ...order, status: 'shipped' } : order
