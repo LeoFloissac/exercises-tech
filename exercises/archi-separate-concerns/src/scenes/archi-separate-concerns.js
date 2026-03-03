@@ -14,7 +14,101 @@
 
 import React, { useState, useEffect } from 'react';
 import ordersApi from 'services/orders-api';
-import Summary from 'components/summary';
+import api from 'services/api-service';
+
+const Summary = ({ orders, totalRevenue, customerEmails }) => {
+  return (
+      <div className="bg-blue-50 p-4 rounded-lg mb-6">
+          <h2 className="text-lg font-semibold mb-2">Dashboard Summary</h2>
+          <p className="mb-1">Total Orders: {orders.length}</p>
+          <p className="mb-1">Total Revenue: ${totalRevenue.toFixed(2)}</p>
+          <p>Unique Customers: {customerEmails.length}</p>
+    </div>
+  );
+};
+
+const Filters = ({filter, setFilter, sortBy, setSortBy}) => {
+  return (
+      <div className="mb-6 flex flex-wrap gap-4">
+          <select 
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md"
+          >
+              <option value="all">All Orders</option>
+              <option value="completed">Completed</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+          </select>
+          
+          <select 
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md"
+          >
+              <option value="date">Sort by Date</option>
+              <option value="total">Sort by Total</option>
+          </select>
+    </div>
+  );
+};
+
+const Table = ({ sortedOrders, sendReminderEmail, markAsShipped }) => { 
+  return (
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white rounded-lg overflow-hidden">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {sortedOrders.map(order => (
+              <tr key={order.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{order.id}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.customerName}<br />{order.customerEmail}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(order.date).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                    ${order.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                      order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' : 
+                        'bg-blue-100 text-blue-800'}`}
+                  >
+                    {order.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.total.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button 
+                    onClick={() => sendReminderEmail(order.id)}
+                    className="text-indigo-600 hover:text-indigo-900 mr-4"
+                  >
+                    Send Reminder
+                  </button>
+                  {order.status !== 'shipped' && (
+                    <button 
+                      onClick={() => markAsShipped(order.id)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      Mark Shipped
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+  );
+};
+
 
 const OrdersDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -30,7 +124,7 @@ const OrdersDashboard = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const data = await ordersApi.getOrders();
+        const data = await api.get('/orders');
         
         setOrders(data);
         
@@ -73,25 +167,25 @@ const OrdersDashboard = () => {
   // Send reminder email
   const sendReminderEmail = async (orderId) => {
     try {
-      await ordersApi.sendReminder(orderId);
-      
+      const {data, ok} = await api.post('/orders/${orderId}/send-reminder', { orderId });
+      if (!ok) return toast.error("Failed to send reminder email");
       alert('Reminder email sent successfully');
-    } catch (err) {
-      alert(`Error: ${err.message}`);
+    } catch (e) {
+      console.error(e);
     }
   };
   
   // Mark order as shipped
   const markAsShipped = async (orderId) => {
     try {
-      constdata = await ordersApi.markAsShipped(orderId);
-      
+      const {data, ok} = await ordersApi.markAsShipped(orderId);
+      if (!ok) return toast.error("Failed to mark order as shipped");
       setOrders(orders.map(order => 
         order.id === orderId ? { ...order, status: 'shipped' } : order
       ));
       alert('Order marked as shipped');
-    } catch (err) {
-      alert(`Error: ${err.message}`);
+    } catch (e) {
+      console.error(e);
     }
   };
   
