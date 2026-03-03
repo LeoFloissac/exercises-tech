@@ -12,6 +12,7 @@
 // 4. Keeping the existing functionality and Tailwind styling
 
 import React, { useState, useEffect } from 'react';
+import api from '../services/api-service';
 
 const UserStatistics = ({ userId, preferences }) => {
   const [user, setUser] = useState(null);
@@ -22,13 +23,9 @@ const UserStatistics = ({ userId, preferences }) => {
 
   const fetchUserData = async () => {
     try {
-      const res = await fetch(`/api/users/${userId}`);
-      const userData = await res.json();
-      if (userData.ok) {
-        setUser(userData.data);
-      } else {
-        toast.error(userData.error);
-      }
+      const {ok, data} = await api.get('/orders');
+      if (!ok) return toast.error("Failed to fetch user data");
+      setUser(userData.data);
     } catch (error) {
       console.error('Failed to fetch user data', error);
     }
@@ -36,13 +33,9 @@ const UserStatistics = ({ userId, preferences }) => {
 
   const fetchTransactionsData = async () => {
     try {
-      const res = await fetch(`/api/transactions?userId=${userId}`);
-      const transactionsData = await res.json();
-      if (transactionsData.ok) {
-        setTransactions(transactionsData.data);
-      } else {
-        toast.error(transactionsData.error);
-      }
+      const {ok, data} = await api.get(`/transactions?userId=${userId}`);
+      if (!ok) return toast.error("Failed to fetch transactions data");
+      setTransactions(data);
     } catch (error) {
       console.error('Failed to fetch transactions data', error);
     }
