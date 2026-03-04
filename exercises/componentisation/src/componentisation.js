@@ -13,6 +13,7 @@
 // 4. Improving overall code organization
 
 import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const StatsCard = ({ title, value, colorClass, iconPath }) => {
   return (
@@ -20,7 +21,7 @@ const StatsCard = ({ title, value, colorClass, iconPath }) => {
       <div className="flex items-center">
         <div className={colorClass}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={d} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={iconPath} />
           </svg>
         </div>
         <div>
@@ -174,57 +175,84 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  fetchStatsData = async () => {
+    try {
+      const {ok, data} = await api.get('/dashboard/stats');
+      if (!ok) return toast.error("Failed to fetch stats");
+      setStats(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  fetchRecentUsersData = async () => {
+    try {
+      const {ok, data} = await api.get('/users/recent');
+      if (!ok) return toast.error("Failed to fetch recent users");
+      setRecentUsers(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  fetchPopularProductsData = async () => {
+    try {
+      const {ok, data} = await api.get('/products/popular');
+      if (!ok) return toast.error("Failed to fetch popular products");
+      setPopularProducts(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  fetchNotificationsData = async () => {
+    try {
+      const {ok, data} = await api.get('/notifications');
+      if (!ok) return toast.error("Failed to fetch notifications");
+      setNotifications(data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch stats
-        const statsResponse = await fetch('/api/dashboard/stats');
-        const statsData = await statsResponse.json();
-        
-        // Fetch recent users
-        const usersResponse = await fetch('/api/users/recent');
-        const usersData = await usersResponse.json();
-        
-        // Fetch popular products
-        const productsResponse = await fetch('/api/products/popular');
-        const productsData = await productsResponse.json();
-        
-        // Fetch notifications
-        const notificationsResponse = await fetch('/api/notifications');
-        const notificationsData = await notificationsResponse.json();
-        
-        setStats(statsData);
-        setRecentUsers(usersData);
-        setPopularProducts(productsData);
-        setNotifications(notificationsData);
-        setLoading(false);
-      } catch (err) {
+
+        await Promise.all([
+          fetchStatsData(),
+          fetchRecentUsersData(),
+          fetchPopularProductsData(),
+          fetchNotificationsData()
+        ]);
+
+      } catch (e) {
+        console.error(e);
         setError('Failed to load dashboard data');
+      } finally {
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
   
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PUT'
-      });
+      const {ok, data} = await api.put(`/notifications/${notificationId}/read`);
+      if (!ok) return toast.error("Failed to mark notification as read");
       
       // Update notifications in state
-      setNotifications(notifications.map(notification => 
+      setNotifications(data.map(notification => 
         notification.id === notificationId 
           ? { ...notification, read: true } 
           : notification
       ));
-    } catch (err) {
-      console.error('Failed to mark notification as read', err);
+    } catch (e) {
+      console.error(e);
     }
   };
   

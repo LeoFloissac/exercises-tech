@@ -100,9 +100,9 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ok: false, error: 'TASK_NOT_FOUND' });
     }
 
-    // Assign task to creator user
-    if (req.body?.creator_user_id) {
-      const user = await User.findById(req.body.creator_user_id);
+    // Assign task
+    if (req.body?.assigned_user_id) {
+      const user = await User.findById(req.body.assigned_user_id);
       if (!user) {
         return res.status(404).json({ok: false, error: 'USER_NOT_FOUND' });
       }
@@ -127,8 +127,9 @@ router.put('/:id', async (req, res) => {
         user_avatar: req.body.comment_user_avatar
       });
       task.comments.push(comment);
+    } else if (req.body?.comment || req.body?.comment_user_id || req.body?.comment_user_name || req.body?.comment_user_avatar) {
+      return res.status(400).json({ok: false, error: 'INVALID_COMMENT' });
     }
-
 
     task.updatedAt = Date.now();
     await task.save();

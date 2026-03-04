@@ -125,7 +125,7 @@ const OrdersDashboard = () => {
       try {
         setLoading(true);
         const {ok, data} = await api.get('/orders');
-        
+        if (!ok) return toast.error("Failed to fetch orders");
         setOrders(data);
         
         // Calculate total revenue
